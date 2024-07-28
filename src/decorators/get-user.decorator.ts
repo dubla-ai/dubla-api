@@ -1,0 +1,6 @@
+import { ForbiddenException, createParamDecorator } from '@nestjs/common';
+import { User } from '../entities';
+
+export const GetUser = createParamDecorator((data, req): User => {
+  return req.args[0].user;
+});
