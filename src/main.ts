@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
-  Logger,
   UnprocessableEntityException,
   ValidationError,
   ValidationPipe,
@@ -9,7 +8,6 @@ import {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useLogger(app.get(Logger));
   app.setGlobalPrefix('v1');
   app.enableCors();
   app.useGlobalPipes(
