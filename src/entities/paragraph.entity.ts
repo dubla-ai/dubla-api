@@ -11,9 +11,9 @@ export class Paragraph extends BaseEntity {
   @Column()
   text: string;
 
-  @OneToMany(() => Audio, audio => audio.paragraph)
+  @OneToMany(() => Audio, (audio) => audio.paragraph)
   audios: Audio[];
 
-  @ManyToOne(() => Voice, voice => voice.paragraphs)
+  @ManyToOne(() => Voice, (voice) => voice.paragraphs)
   voice: Voice;
 }

@@ -10,6 +10,6 @@ export class Project extends BaseEntity {
   @Column()
   description: string;
 
-  @ManyToOne(() => User, user => user.projects)
+  @ManyToOne(() => User, (user) => user.projects)
   user: User;
 }

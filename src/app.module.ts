@@ -4,9 +4,7 @@ import { dataSourceOptions } from './configs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(dataSourceOptions),
-  ],
+  imports: [TypeOrmModule.forRoot(dataSourceOptions)],
   controllers: [AppController],
   providers: [],
 })

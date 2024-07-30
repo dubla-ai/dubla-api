@@ -1,4 +1,4 @@
 export class CreateProjectRequest {
-    name: string;
-    description: string;
+  name: string;
+  description: string;
 }

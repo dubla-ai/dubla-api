@@ -3,12 +3,12 @@ import { BaseEntity } from './base.entity';
 import { Paragraph } from './paragraph.entity';
 
 enum GenderEnum {
-    MALE = 'MALE',
-    FEMALE = 'FEMALE'
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
 }
 
 enum AgeGroup {
-    TEENAGER = 'TEENAGER'
+  TEENAGER = 'TEENAGER',
 }
 
 @Entity({ name: 'voices' })
@@ -28,6 +28,6 @@ export class Voice extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   isActive: boolean;
 
-  @OneToMany(() => Paragraph, paragraph => paragraph.voice)
+  @OneToMany(() => Paragraph, (paragraph) => paragraph.voice)
   paragraphs: Paragraph[];
 }

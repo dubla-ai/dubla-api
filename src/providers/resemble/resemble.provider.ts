@@ -35,14 +35,9 @@ export class ResembleProvider extends BaseProvider {
     };
   }
 
-  public async example(
-    request: any
-  ): Promise<string[]> {
-    return await this.client.post<any, string[]>(
-      `example`,
-      {
-        request
-      },
-    );
+  public async example(request: any): Promise<string[]> {
+    return await this.client.post<any, string[]>(`example`, {
+      request,
+    });
   }
 }
