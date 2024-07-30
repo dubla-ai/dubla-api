@@ -1,8 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import {
+  Logger,
+  UnprocessableEntityException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  app.useLogger(app.get(Logger));
+  app.setGlobalPrefix('v1');
+  app.enableCors();
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      exceptionFactory: (validationErrors: ValidationError[] = []) => {
+        return new UnprocessableEntityException(
+          validationErrors.map((error) => ({
+            field: error.property,
+            error: Object.values(error.constraints).join(', '),
+          })),
+        );
+      },
+    }),
+  );
+  await app.listen(process.env.PORT || 3010);
 }
 bootstrap();
