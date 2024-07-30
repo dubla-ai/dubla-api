@@ -1,2 +1,2 @@
-export * from './ormconfig';
-export * from './queueconfig';
+export * from './data-source.config';
+export * from './queue.config';

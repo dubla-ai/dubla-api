@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -13,11 +12,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import {
-  CreateAppRequestDto,
-  SignUpRequestDto,
-  SignInRequestDto,
-} from '../users/dto/request';
+import { SignUpRequestDto, SignInRequestDto } from '../users/dto/request';
 
 @Controller('auth')
 export class AuthController {
@@ -45,10 +40,5 @@ export class AuthController {
   @Get('/me')
   getProfile(@Req() req): any {
     return req.user;
-  }
-
-  @Get('app')
-  async createApp(@Query() createAppRequest: CreateAppRequestDto) {
-    return await this.authService.createApp(createAppRequest);
   }
 }

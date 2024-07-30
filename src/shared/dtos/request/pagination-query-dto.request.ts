@@ -1,7 +1,6 @@
 import { IsOptional, IsString, IsInt, Min, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IsDateFormat } from '../../../validators';
-import { OrderStatusEnum } from '../../../entities/order-status.entity';
 
 export class PaginationQueryRequestDto {
   @IsOptional()
@@ -23,10 +22,6 @@ export class PaginationQueryRequestDto {
   @IsOptional()
   @IsString()
   search: string;
-
-  @IsOptional()
-  @IsString()
-  status: OrderStatusEnum;
 
   @IsOptional()
   @IsDateFormat({
