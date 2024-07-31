@@ -1,4 +1,4 @@
 export class SignInRequestDto {
-  username: string;
+  email: string;
   password: string;
 }

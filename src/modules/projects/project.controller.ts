@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -20,7 +21,7 @@ export class ProjectController {
   @Post()
   public async create(
     @GetUser() loggedUser: User,
-    project: CreateProjectRequest,
+    @Body() project: CreateProjectRequest,
   ) {
     return await this.projectService.create(loggedUser, project);
   }

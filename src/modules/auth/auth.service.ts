@@ -17,7 +17,7 @@ export class AuthService {
   async login(
     signInDto: SignInRequestDto,
   ): Promise<TokenAuthResponseDto | undefined> {
-    const user = await this.usersService.findByEmail(signInDto.username);
+    const user = await this.usersService.findByEmail(signInDto.email);
 
     if (!user) return undefined;
 

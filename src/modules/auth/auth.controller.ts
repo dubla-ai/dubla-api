@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import {
   Body,
   Controller,
@@ -10,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SignUpRequestDto, SignInRequestDto } from '../users/dto/request';
 
@@ -19,7 +19,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard)
   @Post('sign-in')
   async signIn(@Body() signInDto: SignInRequestDto) {
     const response = this.authService.login(signInDto);
@@ -32,13 +31,12 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Post('sign-up')
   async signUp(@Body() signUpDto: SignUpRequestDto) {
-    const response = this.authService.signUp(signUpDto);
-    return response;
+    return await this.authService.signUp(signUpDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/me')
   getProfile(@Req() req): any {
-    return req.user;
+    return _.omit(req.user, ['password']);
   }
 }

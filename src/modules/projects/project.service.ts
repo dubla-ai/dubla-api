@@ -17,7 +17,9 @@ export class ProjectService {
     return await this.projectRepository.save(
       this.projectRepository.create({
         ...project,
-        user,
+        user: {
+          id: user.id,
+        },
       }),
     );
   }
