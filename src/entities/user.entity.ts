@@ -1,6 +1,6 @@
-import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Project, Plan, Voice } from './';
+import { Project, Voice, UserPlan } from './';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -9,6 +9,9 @@ export class User extends BaseEntity {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ unique: true, nullable: true })
+  cpf: string;
 
   @Column()
   password: string;
@@ -19,6 +22,6 @@ export class User extends BaseEntity {
   @OneToMany(() => Voice, (voice) => voice.user)
   voices: Voice[];
 
-  @ManyToOne(() => Plan, (plan) => plan.users)
-  plan: Plan;
+  @OneToMany(() => UserPlan, (userPlan) => userPlan.user)
+  userPlans: UserPlan[];
 }

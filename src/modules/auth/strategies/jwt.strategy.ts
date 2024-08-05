@@ -24,10 +24,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }): Promise<User> {
     const { user_id } = payload;
 
-    const user = await this.userRepository.findOne({
-      relations: ['plan'],
-      where: { id: user_id },
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(
+        'user.userPlans',
+        'userPlan',
+        'userPlan.startDate <= :currentDate AND userPlan.endDate >= :currentDate',
+        { currentDate: new Date() },
+      )
+      .leftJoinAndSelect('userPlan.plan', 'plan')
+      .where('user.id = :userId', { userId: user_id })
+      .getOne();
 
     if (!user) throw new UnauthorizedException();
 

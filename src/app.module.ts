@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProjectModule } from './modules/projects/project.module';
 import dataSourceOptions from './configs/data-source-options.config';
 import { VoiceModule } from './modules/voices/voice.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { VoiceModule } from './modules/voices/voice.module';
     UsersModule,
     ProjectModule,
     VoiceModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [],

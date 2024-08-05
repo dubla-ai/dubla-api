@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { User } from './user.entity';
+import { UserPlan } from './user_plan.entity';
 
 @Entity({ name: 'plans' })
 export class Plan extends BaseEntity {
@@ -13,6 +13,6 @@ export class Plan extends BaseEntity {
   @Column()
   monthlyCredits: number;
 
-  @OneToMany(() => User, (user) => user.plan)
-  users: User[];
+  @OneToMany(() => UserPlan, (userPlan) => userPlan.plan)
+  userPlans: UserPlan[];
 }

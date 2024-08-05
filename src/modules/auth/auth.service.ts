@@ -69,7 +69,7 @@ export class AuthService {
 
   async getDashboard(user: User, filters: GetDashboardRequest): Promise<any> {
     const { startDate, endDate } = filters;
-    const monthlyCredits = user.plan.monthlyCredits;
+    const monthlyCredits = user.userPlans[0]?.plan.monthlyCredits || 3600;
 
     const start = startOfMonth(new Date());
     const end = endOfMonth(new Date());
