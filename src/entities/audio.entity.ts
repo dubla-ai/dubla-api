@@ -10,9 +10,14 @@ export class Audio extends BaseEntity {
     length: 255,
     nullable: true,
     comment: 'Resemble internal ID',
-    select: false,
   })
   providerId: string;
+
+  @Column({ type: 'float' })
+  durationInSeconds: number;
+
+  @Column({ type: 'boolean', default: false })
+  isSelected: boolean;
 
   @Column({
     type: 'varchar',

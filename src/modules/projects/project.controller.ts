@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -11,7 +12,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProjectService } from './project.service';
 import { User } from '../../entities';
 import { GetUser } from '../../decorators/get-user.decorator';
-import { CreateParagraphRequest, CreateProjectRequest } from './dto';
+import {
+  CreateParagraphRequest,
+  CreateProjectRequest,
+  UpdateParagraphRequest,
+} from './dto';
 import { IsUuidParam } from '../../validators';
 
 @Controller('projects')
@@ -58,6 +63,49 @@ export class ProjectController {
       loggedUser,
       projectId,
       paragraph,
+    );
+  }
+
+  @Patch(':id/paragraphs/:paragraphId')
+  public async updateParagraph(
+    @GetUser() loggedUser: User,
+    @IsUuidParam('id') projectId: string,
+    @IsUuidParam('paragraphId') paragraphId: string,
+    @Body() paragraph: UpdateParagraphRequest,
+  ) {
+    return await this.projectService.updateParagraph(
+      loggedUser,
+      projectId,
+      paragraphId,
+      paragraph,
+    );
+  }
+
+  @Post(':id/paragraphs/:paragraphId/preview')
+  public async generatePreview(
+    @GetUser() loggedUser: User,
+    @IsUuidParam('id') projectId: string,
+    @IsUuidParam('paragraphId') paragraphId: string,
+  ) {
+    return await this.projectService.generatePreview(
+      loggedUser,
+      projectId,
+      paragraphId,
+    );
+  }
+
+  @Patch(':id/paragraphs/:paragraphId/audios/:audioId')
+  public async selectAudio(
+    @GetUser() loggedUser: User,
+    @IsUuidParam('id') projectId: string,
+    @IsUuidParam('paragraphId') paragraphId: string,
+    @IsUuidParam('audioId') audioId: string,
+  ) {
+    return await this.projectService.selectAudio(
+      loggedUser,
+      projectId,
+      paragraphId,
+      audioId,
     );
   }
 }

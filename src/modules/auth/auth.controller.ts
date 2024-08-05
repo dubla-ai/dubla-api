@@ -13,6 +13,8 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { SignUpRequestDto, SignInRequestDto } from '../users/dto/request';
+import { GetUser } from '../../decorators/get-user.decorator';
+import { User } from '../../entities';
 
 @Controller('auth')
 export class AuthController {
@@ -38,5 +40,11 @@ export class AuthController {
   @Get('/me')
   getProfile(@Req() req): any {
     return _.omit(req.user, ['password']);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/dashboard')
+  async getDashboard(@GetUser() loggedUser: User) {
+    return await this.authService.getDashboard(loggedUser);
   }
 }

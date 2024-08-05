@@ -5,7 +5,7 @@ import { Paragraph } from './paragraph.entity';
 
 @Entity({ name: 'projects' })
 export class Project extends BaseEntity {
-  @Column({ select: false })
+  @Column()
   providerId: string;
 
   @Column()

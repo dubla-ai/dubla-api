@@ -9,10 +9,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Audio, Paragraph, Project, User, Voice } from '../../entities';
-import { CreateParagraphRequest, CreateProjectRequest } from './dto';
+import {
+  CreateParagraphRequest,
+  CreateProjectRequest,
+  UpdateParagraphRequest,
+} from './dto';
 import { AUDIO_SCRIPT_SERVICE, STORAGE_SERVICE } from '../../services/services';
 import { IAudioScriptService } from '../../services/audio-script/audio-script.service.interface';
 import { IStorageService } from '../../services/storage/storage.service.interface';
+import { patchIfPresent } from '../../utils';
 
 @Injectable()
 export class ProjectService {
@@ -132,7 +137,9 @@ export class ProjectService {
             return {
               id: a.id,
               createdAt: a.createdAt,
+              isSelected: a.isSelected,
               audioSrc: audioSrc,
+              durationInSeconds: a.durationInSeconds,
             };
           }),
         );
@@ -143,6 +150,53 @@ export class ProjectService {
         };
       }),
     );
+  }
+
+  public async updateParagraph(
+    loggedUser: User,
+    projectId: string,
+    paragraphId: string,
+    updateParagraph: UpdateParagraphRequest,
+  ) {
+    const paragraph = await this.paragraphRepository.findOne({
+      relations: ['project', 'voice'],
+      where: {
+        project: {
+          id: projectId,
+          user: {
+            id: loggedUser.id,
+          },
+        },
+        id: paragraphId,
+      },
+    });
+
+    if (!paragraph) {
+      throw new NotFoundException('Paragrafo não foi encontrado');
+    }
+
+    if (updateParagraph.voiceId) {
+      const voice = await this.voiceRepository.findOne({
+        select: ['id', 'providerId'],
+        where: {
+          id: updateParagraph.voiceId,
+          isActive: true,
+        },
+      });
+
+      if (!voice) {
+        throw new NotFoundException('Voz não foi encontrada');
+      }
+    }
+
+    patchIfPresent(paragraph, 'body', updateParagraph.body);
+    patchIfPresent(paragraph.voice, 'id', updateParagraph.voiceId);
+
+    await this.paragraphRepository.update(paragraph.id, {
+      ...paragraph,
+    });
+
+    return await this.paragraphRepository.findOneBy({ id: paragraph.id });
   }
 
   public async createParagraph(
@@ -176,23 +230,7 @@ export class ProjectService {
       throw new NotFoundException('Voz não foi encontrada');
     }
 
-    const clip = await this.audioScriptService.createClip(project.providerId, {
-      body: createParagraph.body,
-      voice_uuid: voice.providerId,
-      output_format: 'mp3',
-    });
-
-    const fullPath = `paragraphs/${project.id}/${uuidv4()}.mp3`;
-
-    const audioDownloaded = await this.audioScriptService.downloadFile(
-      clip.item.audio_src,
-    );
-    const storageFileUrl = await this.storageService.upload(
-      Buffer.from(audioDownloaded),
-      fullPath,
-    );
-
-    const paragraph = await this.paragraphRepository.save(
+    return await this.paragraphRepository.save(
       this.paragraphRepository.create({
         project: {
           id: project.id,
@@ -203,6 +241,65 @@ export class ProjectService {
         body: createParagraph.body,
       }),
     );
+  }
+
+  public async generatePreview(
+    loggedUser: User,
+    projectId: string,
+    paragraphId: string,
+  ) {
+    const paragraph = await this.paragraphRepository.findOne({
+      relations: ['project', 'voice'],
+      where: {
+        project: {
+          id: projectId,
+          user: {
+            id: loggedUser.id,
+          },
+        },
+        id: paragraphId,
+      },
+    });
+
+    if (!paragraph) {
+      throw new NotFoundException('Paragrafo não foi encontrado');
+    }
+
+    const clip = await this.audioScriptService.createClip(
+      paragraph.project.providerId,
+      {
+        body: paragraph.body,
+        voice_uuid: paragraph.voice.providerId,
+        output_format: 'mp3',
+      },
+    );
+
+    const { timestamps } = clip.item;
+
+    const startTimes = timestamps.phon_times.map((times) => times[0]);
+    const endTimes = timestamps.phon_times.map((times) => times[1]);
+
+    const minStartTime = Math.min(...startTimes);
+    const maxEndTime = Math.max(...endTimes);
+
+    const durationInSeconds = maxEndTime - minStartTime;
+
+    const fullPath = `paragraphs/${paragraph.project.id}/${uuidv4()}.mp3`;
+
+    const audioDownloaded = await this.audioScriptService.downloadFile(
+      clip.item.audio_src,
+    );
+    const storageFileUrl = await this.storageService.upload(
+      Buffer.from(audioDownloaded),
+      fullPath,
+    );
+
+    await this.audioRepository
+      .createQueryBuilder()
+      .update(Audio)
+      .set({ isSelected: false })
+      .where('paragraph.id = :paragraphId', { paragraphId })
+      .execute();
 
     await this.audioRepository.save(
       this.audioRepository.create({
@@ -211,6 +308,8 @@ export class ProjectService {
         paragraph: {
           id: paragraph.id,
         },
+        durationInSeconds,
+        isSelected: true,
       }),
     );
 
@@ -229,7 +328,82 @@ export class ProjectService {
         return {
           id: a.id,
           createdAt: a.createdAt,
+          isSelected: a.isSelected,
           audioSrc: audioSrc,
+          durationInSeconds: a.durationInSeconds,
+        };
+      }),
+    );
+
+    return {
+      ...createdParagraph,
+      audios,
+    };
+  }
+
+  public async selectAudio(
+    loggedUser: User,
+    projectId: string,
+    paragraphId: string,
+    audioId: string,
+  ) {
+    const paragraph = await this.paragraphRepository.findOne({
+      relations: ['project', 'voice'],
+      where: {
+        project: {
+          id: projectId,
+          user: {
+            id: loggedUser.id,
+          },
+        },
+        id: paragraphId,
+      },
+    });
+
+    if (!paragraph) {
+      throw new NotFoundException('Paragrafo não foi encontrado');
+    }
+
+    const audio = await this.audioRepository.findOne({
+      where: {
+        id: audioId,
+        paragraph: {
+          id: paragraph.id,
+        },
+      },
+    });
+
+    if (!audio) {
+      throw new NotFoundException('Audio não foi encontrado');
+    }
+
+    await this.audioRepository
+      .createQueryBuilder()
+      .update(Audio)
+      .set({ isSelected: false })
+      .where('paragraph.id = :paragraphId', { paragraphId })
+      .execute();
+
+    await this.audioRepository.update(audio.id, { isSelected: true });
+
+    const createdParagraph = await this.paragraphRepository.findOne({
+      relations: ['audios'],
+      where: {
+        id: paragraph.id,
+      },
+    });
+
+    const audios = await Promise.all(
+      createdParagraph.audios.map(async (a) => {
+        const audioSrc = await this.storageService.getSignedUrl(
+          a.storageProviderKey,
+        );
+        return {
+          id: a.id,
+          createdAt: a.createdAt,
+          isSelected: a.isSelected,
+          audioSrc: audioSrc,
+          durationInSeconds: a.durationInSeconds,
         };
       }),
     );
