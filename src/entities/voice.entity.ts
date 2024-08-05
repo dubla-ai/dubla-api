@@ -14,7 +14,7 @@ enum AgeGroup {
 
 @Entity({ name: 'voices' })
 export class Voice extends BaseEntity {
-  @Column()
+  @Column({ select: false })
   providerId: string;
 
   @Column()

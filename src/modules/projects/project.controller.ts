@@ -32,10 +32,10 @@ export class ProjectController {
     return await this.projectService.getAll(loggedUser);
   }
 
-  @Delete(':projectId')
+  @Delete(':id')
   public async delete(
     @GetUser() loggedUser: User,
-    @Param('projectId') projectId: string,
+    @Param('id') projectId: string,
   ) {
     await this.projectService.delete(loggedUser, projectId);
   }

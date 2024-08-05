@@ -6,6 +6,7 @@ import {
   CreateClipResponse,
   CreateProjectRequest,
   CreateProjectResponse,
+  DeleteProjectResponse,
 } from './audio-script.types';
 
 @Injectable()
@@ -16,6 +17,12 @@ export class AudioScriptService implements IAudioScriptService {
     project: CreateProjectRequest,
   ): Promise<CreateProjectResponse> {
     return await this.resemble.createProject(project);
+  }
+
+  public async deleteProject(
+    projectId: string,
+  ): Promise<DeleteProjectResponse> {
+    return await this.resemble.deleteProject(projectId);
   }
 
   public async createClip(

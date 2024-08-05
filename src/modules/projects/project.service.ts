@@ -1,5 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Audio, Paragraph, Project, User, Voice } from '../../entities';
@@ -28,6 +34,19 @@ export class ProjectService {
   ) {}
 
   public async create(user: User, project: CreateProjectRequest) {
+    const projectExists = await this.projectRepository.find({
+      where: {
+        name: project.name,
+        user: {
+          id: user.id,
+        },
+      },
+    });
+
+    if (projectExists?.length) {
+      throw new ForbiddenException('Projeto com esse nome já existe');
+    }
+
     const audioScriptProject =
       await this.audioScriptService.createProject(project);
 
@@ -35,7 +54,7 @@ export class ProjectService {
       throw new Error('Could not create project');
     }
 
-    return await this.projectRepository.save(
+    const projectCreated = await this.projectRepository.save(
       this.projectRepository.create({
         ...project,
         providerId: audioScriptProject.item.uuid,
@@ -44,6 +63,14 @@ export class ProjectService {
         },
       }),
     );
+
+    return {
+      id: projectCreated.id,
+      name: projectCreated.name,
+      description: projectCreated.description,
+      createdAt: projectCreated.createdAt,
+      updatedAt: projectCreated.updatedAt,
+    };
   }
 
   public async getAll(user: User) {
@@ -57,7 +84,8 @@ export class ProjectService {
   }
 
   public async delete(user: User, projectId: string) {
-    const project = await this.projectRepository.find({
+    const project = await this.projectRepository.findOne({
+      select: ['id', 'providerId'],
       where: {
         user: {
           id: user.id,
@@ -70,7 +98,7 @@ export class ProjectService {
       throw new NotFoundException('Projeto nao existe');
     }
 
-    await this.projectRepository.delete(projectId);
+    await this.projectRepository.softDelete(projectId);
   }
 
   public async getParagraphs(loggedUser: User, projectId: string) {
@@ -122,20 +150,26 @@ export class ProjectService {
     projectId: string,
     createParagraph: CreateParagraphRequest,
   ) {
-    const project = await this.projectRepository.findOneBy({
-      user: {
-        id: loggedUser.id,
+    const project = await this.projectRepository.findOne({
+      select: ['id', 'providerId'],
+      where: {
+        user: {
+          id: loggedUser.id,
+        },
+        id: projectId,
       },
-      id: projectId,
     });
 
     if (!project) {
       throw new NotFoundException('Projeto não foi encontrado');
     }
 
-    const voice = await this.voiceRepository.findOneBy({
-      id: createParagraph.voiceId,
-      isActive: true,
+    const voice = await this.voiceRepository.findOne({
+      select: ['id', 'providerId'],
+      where: {
+        id: createParagraph.voiceId,
+        isActive: true,
+      },
     });
 
     if (!voice) {
@@ -180,6 +214,29 @@ export class ProjectService {
       }),
     );
 
-    return paragraph;
+    const createdParagraph = await this.paragraphRepository.findOne({
+      relations: ['audios'],
+      where: {
+        id: paragraph.id,
+      },
+    });
+
+    const audios = await Promise.all(
+      createdParagraph.audios.map(async (a) => {
+        const audioSrc = await this.storageService.getSignedUrl(
+          a.storageProviderKey,
+        );
+        return {
+          id: a.id,
+          createdAt: a.createdAt,
+          audioSrc: audioSrc,
+        };
+      }),
+    );
+
+    return {
+      ...createdParagraph,
+      audios,
+    };
   }
 }

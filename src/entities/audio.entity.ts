@@ -10,6 +10,7 @@ export class Audio extends BaseEntity {
     length: 255,
     nullable: true,
     comment: 'Resemble internal ID',
+    select: false,
   })
   providerId: string;
 

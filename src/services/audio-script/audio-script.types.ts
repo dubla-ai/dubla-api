@@ -52,3 +52,7 @@ export type CreateClipResponse = {
     updated_at: Date;
   };
 };
+
+export type DeleteProjectResponse = {
+  success: boolean;
+};

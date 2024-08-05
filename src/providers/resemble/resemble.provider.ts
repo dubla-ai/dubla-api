@@ -6,6 +6,7 @@ import {
   CreateClipRequest,
   CreateClipResponse,
   CreateProjectResponse,
+  DeleteProjectResponse,
 } from '../../services/audio-script/audio-script.types';
 
 @Injectable()
@@ -49,6 +50,14 @@ export class ResembleProvider extends BaseProvider {
       {
         project,
       },
+    );
+  }
+
+  public async deleteProject(
+    projectId: string,
+  ): Promise<DeleteProjectResponse> {
+    return await this.client.delete<any, DeleteProjectResponse>(
+      `/api/v2/projects/${projectId}`,
     );
   }
 
