@@ -12,9 +12,10 @@ import { SignUpResponseDto } from '../users/dto/response/sign-up.response.dto';
 import { comparePasswords } from '../../utils/crypto';
 import { TokenAuthResponseDto } from '../users/dto/response';
 import { Audio, Project, User, Voice } from '../../entities';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { GetDashboardRequest } from './dto/request';
 
 @Injectable()
 export class AuthService {
@@ -66,7 +67,8 @@ export class AuthService {
     return await this.usersService.create(signUp);
   }
 
-  async getDashboard(user: User): Promise<any> {
+  async getDashboard(user: User, filters: GetDashboardRequest): Promise<any> {
+    const { startDate, endDate } = filters;
     const monthlyCredits = user.plan.monthlyCredits;
 
     const start = startOfMonth(new Date());
@@ -81,6 +83,18 @@ export class AuthService {
       .andWhere('audio.createdAt BETWEEN :start AND :end', { start, end })
       .getRawOne();
 
+    const totalDurationUsedInSecondsFiltered = await this.audioRepository
+      .createQueryBuilder('audio')
+      .select('SUM(audio.durationInSeconds)', 'total')
+      .innerJoin('audio.paragraph', 'paragraph')
+      .innerJoin('paragraph.project', 'project')
+      .where('project.userId = :userId', { userId: user.id })
+      .andWhere('audio.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getRawOne();
+
     const usedDurationInSeconds = totalDurationInSeconds.total || 0;
     const creditDifferenceInHours = monthlyCredits - usedDurationInSeconds;
 
@@ -88,20 +102,64 @@ export class AuthService {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.user', 'user')
       .where('user.id = :userId', { userId: user.id })
+      .andWhere('project.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
       .getCount();
 
     const totalVoices = await this.voiceRepository
       .createQueryBuilder('voice')
       .leftJoinAndSelect('voice.user', 'user')
       .where('user.id = :userId', { userId: user.id })
+      .andWhere('voice.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
       .getCount();
 
+    const rawDailyUsage = await this.audioRepository
+      .createQueryBuilder('audio')
+      .select('DATE(audio.createdAt)', 'day')
+      .addSelect('SUM(audio.durationInSeconds)', 'total')
+      .innerJoin('audio.paragraph', 'paragraph')
+      .innerJoin('paragraph.project', 'project')
+      .where('project.userId = :userId', { userId: user.id })
+      .andWhere('audio.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .groupBy('DATE(audio.createdAt)')
+      .orderBy('DATE(audio.createdAt)')
+      .getRawMany();
+
+    const dailyUsageMap = rawDailyUsage.reduce((acc, entry) => {
+      acc[format(entry.day, 'yyyy-MM-dd')] = parseFloat(entry.total);
+      return acc;
+    }, {});
+
+    const getAllDaysBetween = (
+      startDate: string,
+      endDate: string,
+    ): string[] => {
+      return eachDayOfInterval({ start: startDate, end: endDate }).map((date) =>
+        format(date, 'yyyy-MM-dd'),
+      );
+    };
+
+    const allDays = getAllDaysBetween(startDate, endDate);
+
+    const formattedDailyUsage = allDays.map((day) => ({
+      day,
+      total: dailyUsageMap[day] || 0,
+    }));
     return {
       secondsAvailable: creditDifferenceInHours,
-      secondsUsed: usedDurationInSeconds,
       secondsInPlan: monthlyCredits,
+      secondsUsed: totalDurationUsedInSecondsFiltered.total || 0,
       totalProjects,
       totalVoices,
+      usage: formattedDailyUsage,
     };
   }
 }
