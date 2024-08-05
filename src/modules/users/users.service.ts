@@ -26,20 +26,21 @@ export class UsersService {
 
   async create(signUpDto: SignUpRequestDto): Promise<SignUpResponseDto> {
     const findUser = await this.userRepository.findOne({
-      where: {
-        email: signUpDto.email,
-      },
+      where: [{ email: signUpDto.email }, { cpf: signUpDto.cpf }],
     });
 
     if (findUser) {
       throw new UnprocessableEntityException(
-        'Já existe um usuário com esse email.',
+        'Já existe um usuário com esse email ou cpf.',
       );
     }
 
     const user = this.userRepository.create({
       name: signUpDto.name,
       email: signUpDto.email,
+      cpf: signUpDto.cpf,
+      phone: signUpDto.phone,
+      userOrigin: signUpDto.userOrigin,
       password: await hashPassword(signUpDto.password),
     });
 
@@ -145,6 +146,8 @@ export class UsersService {
 
     patchIfPresent(user, 'name', patchUser.name);
     patchIfPresent(user, 'email', patchUser.email);
+    patchIfPresent(user, 'cpf', patchUser.cpf);
+    patchIfPresent(user, 'phone', patchUser.phone);
 
     await this.userRepository.update(userId, {
       ...user,

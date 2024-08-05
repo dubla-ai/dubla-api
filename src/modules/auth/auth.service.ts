@@ -12,7 +12,7 @@ import { SignUpResponseDto } from '../users/dto/response/sign-up.response.dto';
 import { comparePasswords } from '../../utils/crypto';
 import { TokenAuthResponseDto } from '../users/dto/response';
 import { Audio, Project, User, Voice } from '../../entities';
-import { eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns';
+import { eachDayOfInterval, format } from 'date-fns';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GetDashboardRequest } from './dto/request';
@@ -69,34 +69,6 @@ export class AuthService {
 
   async getDashboard(user: User, filters: GetDashboardRequest): Promise<any> {
     const { startDate, endDate } = filters;
-    const monthlyCredits = user.userPlans[0]?.plan.monthlyCredits || 3600;
-
-    const start = startOfMonth(new Date());
-    const end = endOfMonth(new Date());
-
-    const totalDurationInSeconds = await this.audioRepository
-      .createQueryBuilder('audio')
-      .select('SUM(audio.durationInSeconds)', 'total')
-      .innerJoin('audio.paragraph', 'paragraph')
-      .innerJoin('paragraph.project', 'project')
-      .where('project.userId = :userId', { userId: user.id })
-      .andWhere('audio.createdAt BETWEEN :start AND :end', { start, end })
-      .getRawOne();
-
-    const totalDurationUsedInSecondsFiltered = await this.audioRepository
-      .createQueryBuilder('audio')
-      .select('SUM(audio.durationInSeconds)', 'total')
-      .innerJoin('audio.paragraph', 'paragraph')
-      .innerJoin('paragraph.project', 'project')
-      .where('project.userId = :userId', { userId: user.id })
-      .andWhere('audio.createdAt BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
-      .getRawOne();
-
-    const usedDurationInSeconds = totalDurationInSeconds.total || 0;
-    const creditDifferenceInHours = monthlyCredits - usedDurationInSeconds;
 
     const totalProjects = await this.projectRepository
       .createQueryBuilder('project')
@@ -154,9 +126,9 @@ export class AuthService {
       total: dailyUsageMap[day] || 0,
     }));
     return {
-      secondsAvailable: creditDifferenceInHours,
-      secondsInPlan: monthlyCredits,
-      secondsUsed: totalDurationUsedInSecondsFiltered.total || 0,
+      secondsAvailable: user.creditDifferenceInHours,
+      secondsInPlan: user.planSeconds,
+      secondsUsed: user.usedDurationInSeconds,
       totalProjects,
       totalVoices,
       usage: formattedDailyUsage,

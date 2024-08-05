@@ -1,9 +1,17 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, OneToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Project, Voice, UserPlan } from './';
+import { Expose } from 'class-transformer';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
+  constructor() {
+    super();
+    this.planSeconds = 0;
+    this.usedDurationInSeconds = 0;
+    this.creditDifferenceInHours = 0;
+  }
+
   @Column()
   name: string;
 
@@ -13,8 +21,23 @@ export class User extends BaseEntity {
   @Column({ unique: true, nullable: true })
   cpf: string;
 
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  userOrigin: string;
+
   @Column()
   password: string;
+
+  @Expose()
+  planSeconds: number;
+
+  @Expose()
+  usedDurationInSeconds: number;
+
+  @Expose()
+  creditDifferenceInHours: number;
 
   @OneToMany(() => Project, (project) => project.user)
   projects: Project[];
@@ -22,6 +45,6 @@ export class User extends BaseEntity {
   @OneToMany(() => Voice, (voice) => voice.user)
   voices: Voice[];
 
-  @OneToMany(() => UserPlan, (userPlan) => userPlan.user)
-  userPlans: UserPlan[];
+  @OneToOne(() => UserPlan, (userPlan) => userPlan.user, { cascade: true })
+  userPlan: UserPlan;
 }

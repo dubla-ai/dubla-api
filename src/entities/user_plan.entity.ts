@@ -1,13 +1,15 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Plan, User } from './';
 
 @Entity({ name: 'user_plans' })
 export class UserPlan extends BaseEntity {
-  @ManyToOne(() => User, (user) => user.userPlans)
+  @OneToOne(() => User, (user) => user.userPlan, { onDelete: 'CASCADE' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => Plan, (plan) => plan.userPlans)
+  @JoinColumn()
   plan: Plan;
 
   @Column()
@@ -16,6 +18,6 @@ export class UserPlan extends BaseEntity {
   @Column()
   endDate: Date;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', select: false })
   paymentDetails: any;
 }

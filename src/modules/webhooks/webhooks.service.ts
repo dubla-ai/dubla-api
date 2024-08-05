@@ -41,9 +41,10 @@ export class WebhooksService {
 
     if (!user) {
       this.logger.error({ message: 'Could not find user on payment', body });
+      return;
     }
 
-    const planNames = body.products.map((p) => p.name);
+    const planNames = body.products.map((p) => p.offer_name);
 
     const plan = await this.planRepository.findOne({
       where: {
@@ -53,10 +54,12 @@ export class WebhooksService {
 
     if (!plan) {
       this.logger.error({ message: 'Could not find plan on payment', body });
+      return;
     }
 
     await this.userPlanRepository.save(
       this.userPlanRepository.create({
+        paymentDetails: body,
         startDate: new Date(),
         endDate: addMonths(new Date(), 1),
         plan: {
@@ -78,6 +81,7 @@ export class WebhooksService {
 
     if (!user) {
       this.logger.error({ message: 'Could not find user on payment', body });
+      return;
     }
 
     const planNames = body.products.map((p) => p.name);
@@ -90,6 +94,7 @@ export class WebhooksService {
 
     if (!plan) {
       this.logger.error({ message: 'Could not find plan on payment', body });
+      return;
     }
 
     const userPlans = await this.userPlanRepository.find({
