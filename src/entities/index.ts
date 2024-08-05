@@ -1,3 +1,4 @@
+export * from './audio.entity';
 export * from './paragraph.entity';
 export * from './project.entity';
 export * from './user.entity';

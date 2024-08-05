@@ -5,6 +5,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProjectModule } from './modules/projects/project.module';
 import dataSourceOptions from './configs/data-source-options.config';
+import { VoiceModule } from './modules/voices/voice.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import dataSourceOptions from './configs/data-source-options.config';
     AuthModule,
     UsersModule,
     ProjectModule,
+    VoiceModule,
   ],
   controllers: [AppController],
   providers: [],

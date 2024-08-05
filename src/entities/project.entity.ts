@@ -1,9 +1,13 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
+import { Paragraph } from './paragraph.entity';
 
 @Entity({ name: 'projects' })
 export class Project extends BaseEntity {
+  @Column()
+  providerId: string;
+
   @Column()
   name: string;
 
@@ -12,4 +16,7 @@ export class Project extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.projects)
   user: User;
+
+  @OneToMany(() => Paragraph, (paragraph) => paragraph.project)
+  paragraphs: Paragraph[];
 }

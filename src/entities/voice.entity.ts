@@ -1,6 +1,7 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Paragraph } from './paragraph.entity';
+import { Audio } from './audio.entity';
 
 enum GenderEnum {
   MALE = 'MALE',
@@ -13,6 +14,9 @@ enum AgeGroup {
 
 @Entity({ name: 'voices' })
 export class Voice extends BaseEntity {
+  @Column()
+  providerId: string;
+
   @Column()
   name: string;
 
@@ -30,4 +34,7 @@ export class Voice extends BaseEntity {
 
   @OneToMany(() => Paragraph, (paragraph) => paragraph.voice)
   paragraphs: Paragraph[];
+
+  @OneToMany(() => Audio, (audio) => audio.voice)
+  audios: Audio[];
 }

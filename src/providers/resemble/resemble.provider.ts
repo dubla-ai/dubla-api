@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { BaseProvider } from '../base';
 import { AxiosError } from 'axios';
+import { CreateProjectRequest } from '../../modules/projects/dto';
+import {
+  CreateClipRequest,
+  CreateClipResponse,
+  CreateProjectResponse,
+} from '../../services/audio-script/audio-script.types';
 
 @Injectable()
 export class ResembleProvider extends BaseProvider {
@@ -24,20 +30,41 @@ export class ResembleProvider extends BaseProvider {
   }
 
   protected getBaseUrl(): string {
-    return process.env.RESEMBLE_BASE_URL;
+    return 'https://app.resemble.ai';
   }
 
   protected get baseHeaders() {
     return {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      Authornization: `Bearer ${process.env.RESEMBLE_API_KEY}`,
+      Authorization: `Bearer ${process.env.RESEMBLE_API_KEY}`,
     };
   }
 
-  public async example(request: any): Promise<string[]> {
-    return await this.client.post<any, string[]>(`example`, {
-      request,
-    });
+  public async createProject(
+    project: CreateProjectRequest,
+  ): Promise<CreateProjectResponse> {
+    return await this.client.post<any, CreateProjectResponse>(
+      `/api/v2/projects`,
+      {
+        project,
+      },
+    );
+  }
+
+  public async getProject(projectId: string): Promise<CreateProjectResponse> {
+    return await this.client.get<any, CreateProjectResponse>(
+      `/api/v2/projects/${projectId}`,
+    );
+  }
+
+  public async createClip(
+    projectId: string,
+    clip: CreateClipRequest,
+  ): Promise<CreateClipResponse> {
+    return await this.client.post<any, CreateClipResponse>(
+      `/api/v2/projects/${projectId}/clips`,
+      clip,
+    );
   }
 }
