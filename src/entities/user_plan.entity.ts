@@ -18,6 +18,6 @@ export class UserPlan extends BaseEntity {
   @Column()
   endDate: Date;
 
-  @Column({ type: 'json', select: false })
+  @Column({ type: 'json', select: false, nullable: true })
   paymentDetails: any;
 }
