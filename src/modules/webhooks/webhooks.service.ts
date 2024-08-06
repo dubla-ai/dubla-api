@@ -3,7 +3,7 @@ import { KirvanoWebhookEvent } from './types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Plan, User, UserPlan } from '../../entities';
 import { In, Repository } from 'typeorm';
-import { addMonths } from 'date-fns';
+import { addMonths, endOfMonth, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class WebhooksService {
@@ -111,5 +111,24 @@ export class WebhooksService {
     for (const userPlan of userPlans) {
       await this.userPlanRepository.softDelete(userPlan.id);
     }
+
+    const freePlan = await this.planRepository.findOne({
+      where: {
+        name: 'Gratuito',
+      },
+    });
+
+    await this.userPlanRepository.save(
+      this.userPlanRepository.create({
+        startDate: startOfMonth(new Date()),
+        endDate: endOfMonth(new Date()),
+        plan: {
+          id: freePlan.id,
+        },
+        user: {
+          id: user.id,
+        },
+      }),
+    );
   }
 }

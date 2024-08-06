@@ -6,13 +6,13 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Audio, Project, User, Voice } from '../../entities';
+import { Audio, Plan, Project, User, UserPlan, Voice } from '../../entities';
 import 'dotenv/config';
 import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Audio, Project, Voice]),
+    TypeOrmModule.forFeature([User, Audio, Project, Voice, UserPlan, Plan]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       global: true,

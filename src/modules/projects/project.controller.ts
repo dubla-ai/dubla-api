@@ -18,6 +18,7 @@ import {
   UpdateParagraphRequest,
 } from './dto';
 import { IsUuidParam } from '../../validators';
+import { PermissionsGuard } from '../../guards';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
@@ -82,6 +83,7 @@ export class ProjectController {
   }
 
   @Post(':id/paragraphs/:paragraphId/preview')
+  @UseGuards(PermissionsGuard)
   public async generatePreview(
     @GetUser() loggedUser: User,
     @IsUuidParam('id') projectId: string,

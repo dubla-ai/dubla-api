@@ -126,7 +126,7 @@ export class AuthService {
       total: dailyUsageMap[day] || 0,
     }));
     return {
-      secondsAvailable: user.creditDifferenceInHours,
+      secondsAvailable: user.availableDurationInSeconds,
       secondsInPlan: user.planSeconds,
       secondsUsed: user.usedDurationInSeconds,
       totalProjects,

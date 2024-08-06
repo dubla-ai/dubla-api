@@ -2,8 +2,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Audio, User } from '../../../entities';
+import { Audio, Plan, User, UserPlan } from '../../../entities';
 import { Repository } from 'typeorm';
+import { endOfMonth, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -12,6 +13,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private userRepository: Repository<User>,
     @InjectRepository(Audio)
     private audioRepository: Repository<Audio>,
+    @InjectRepository(UserPlan)
+    private userPlanRepository: Repository<UserPlan>,
+    @InjectRepository(Plan)
+    private planRepository: Repository<Plan>,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -26,10 +31,36 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }): Promise<User> {
     const { user_id } = payload;
 
-    const user = await this.userRepository.findOne({
+    let user = await this.userRepository.findOne({
       relations: ['userPlan', 'userPlan.plan'],
       where: { id: user_id },
     });
+
+    if (!user.userPlan) {
+      const plan = await this.planRepository.findOne({
+        where: {
+          name: 'Gratuito',
+        },
+      });
+
+      await this.userPlanRepository.save(
+        this.userPlanRepository.create({
+          startDate: startOfMonth(new Date()),
+          endDate: endOfMonth(new Date()),
+          plan: {
+            id: plan.id,
+          },
+          user: {
+            id: user.id,
+          },
+        }),
+      );
+
+      user = await this.userRepository.findOne({
+        relations: ['userPlan', 'userPlan.plan'],
+        where: { id: user_id },
+      });
+    }
 
     const planSeconds = user.userPlan?.plan.monthlyCredits || 3600;
 
@@ -50,7 +81,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     user.planSeconds = planSeconds;
     user.usedDurationInSeconds = totalDurationInSeconds.total || 0;
-    user.creditDifferenceInHours = creditDifferenceInHours;
+    user.availableDurationInSeconds = creditDifferenceInHours;
 
     if (!user) throw new UnauthorizedException();
 

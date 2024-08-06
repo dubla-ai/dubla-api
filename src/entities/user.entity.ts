@@ -9,7 +9,7 @@ export class User extends BaseEntity {
     super();
     this.planSeconds = 0;
     this.usedDurationInSeconds = 0;
-    this.creditDifferenceInHours = 0;
+    this.availableDurationInSeconds = 0;
   }
 
   @Column()
@@ -37,7 +37,7 @@ export class User extends BaseEntity {
   usedDurationInSeconds: number;
 
   @Expose()
-  creditDifferenceInHours: number;
+  availableDurationInSeconds: number;
 
   @OneToMany(() => Project, (project) => project.user)
   projects: Project[];
