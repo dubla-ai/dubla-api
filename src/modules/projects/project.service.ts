@@ -88,6 +88,17 @@ export class ProjectService {
     });
   }
 
+  public async getProjectById(user: User, projectId: string) {
+    return await this.projectRepository.find({
+      where: {
+        id: projectId,
+        user: {
+          id: user.id,
+        },
+      },
+    });
+  }
+
   public async delete(user: User, projectId: string) {
     const project = await this.projectRepository.findOne({
       select: ['id', 'providerId'],

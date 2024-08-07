@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Patch,
   Post,
   UseGuards,
@@ -38,10 +37,18 @@ export class ProjectController {
     return await this.projectService.getAll(loggedUser);
   }
 
+  @Get(':id')
+  public async getProjectById(
+    @IsUuidParam('id') projectId: string,
+    @GetUser() loggedUser: User,
+  ) {
+    return await this.projectService.getProjectById(loggedUser, projectId);
+  }
+
   @Delete(':id')
   public async delete(
     @GetUser() loggedUser: User,
-    @Param('id') projectId: string,
+    @IsUuidParam('id') projectId: string,
   ) {
     await this.projectService.delete(loggedUser, projectId);
   }
