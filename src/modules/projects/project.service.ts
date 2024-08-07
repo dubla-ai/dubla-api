@@ -7,17 +7,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Audio, Paragraph, Project, User, Voice } from '../../entities';
 import {
   CreateParagraphRequest,
   CreateProjectRequest,
   UpdateParagraphRequest,
+  UpdateProjectRequest,
 } from './dto';
 import { AUDIO_SCRIPT_SERVICE, STORAGE_SERVICE } from '../../services/services';
 import { IAudioScriptService } from '../../services/audio-script/audio-script.service.interface';
 import { IStorageService } from '../../services/storage/storage.service.interface';
 import { patchIfPresent } from '../../utils';
+import { PaginationQueryRequestDto } from '../../shared/dtos';
 
 @Injectable()
 export class ProjectService {
@@ -78,14 +80,71 @@ export class ProjectService {
     };
   }
 
-  public async getAll(user: User) {
-    return await this.projectRepository.find({
-      where: {
-        user: {
-          id: user.id,
-        },
-      },
-    });
+  public async getAll(user: User, paginationQuery: PaginationQueryRequestDto) {
+    const { page, limit, orderBy, search } = paginationQuery;
+    const skippedItems = (page - 1) * limit;
+
+    const query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoin('project.paragraphs', 'paragraph')
+      .leftJoin('paragraph.audios', 'audio')
+      .leftJoin('paragraph.voice', 'voice')
+      .select('project')
+      .addSelect('COUNT(paragraph.id)', 'paragraphsCount')
+      .addSelect('SUM(audio.durationInSeconds)', 'totalDuration')
+      .addSelect('COUNT(DISTINCT voice.id)', 'distinctVoicesCount')
+      .where('project.userId = :userId', { userId: user.id })
+      .groupBy('project.id');
+
+    switch (orderBy) {
+      case 'recent':
+        query.orderBy('project.createdAt', 'DESC');
+        break;
+      case 'old':
+        query.orderBy('project.createdAt', 'ASC');
+        break;
+      case 'az':
+        query.orderBy('project.name', 'ASC');
+        break;
+      case 'za':
+        query.orderBy('project.name', 'DESC');
+        break;
+      default:
+        query.orderBy('project.createdAt', 'DESC');
+    }
+
+    if (search) {
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(project.name) LIKE :search', {
+            search: `%${search.toLowerCase()}%`,
+          }).orWhere('LOWER(project.description) LIKE :search', {
+            search: `%${search.toLowerCase()}%`,
+          });
+        }),
+      );
+    }
+
+    const totalCount = await query.getCount();
+    const projects = await query
+      .skip(skippedItems)
+      .take(limit)
+      .getRawAndEntities();
+
+    return {
+      filter: paginationQuery,
+      totalCount,
+      page,
+      data: projects.entities.map((project, index) => ({
+        ...project,
+        paragraphsCount: parseInt(projects.raw[index].paragraphsCount, 10),
+        totalDuration: parseFloat(projects.raw[index].totalDuration),
+        distinctVoicesCount: parseInt(
+          projects.raw[index].distinctVoicesCount,
+          10,
+        ),
+      })),
+    };
   }
 
   public async getProjectById(user: User, projectId: string) {
@@ -96,6 +155,32 @@ export class ProjectService {
           id: user.id,
         },
       },
+    });
+  }
+
+  public async update(
+    user: User,
+    projectId: string,
+    patchProject: UpdateProjectRequest,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+        user: {
+          id: user.id,
+        },
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException();
+    }
+
+    patchIfPresent(project, 'name', patchProject.name);
+    patchIfPresent(project, 'description', patchProject.description);
+
+    await this.projectRepository.update(projectId, {
+      ...project,
     });
   }
 

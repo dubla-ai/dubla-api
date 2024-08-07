@@ -5,6 +5,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,9 +16,11 @@ import {
   CreateParagraphRequest,
   CreateProjectRequest,
   UpdateParagraphRequest,
+  UpdateProjectRequest,
 } from './dto';
 import { IsUuidParam } from '../../validators';
 import { PermissionsGuard } from '../../guards';
+import { PaginationQueryRequestDto } from '../../shared/dtos';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
@@ -33,8 +36,11 @@ export class ProjectController {
   }
 
   @Get()
-  public async get(@GetUser() loggedUser: User) {
-    return await this.projectService.getAll(loggedUser);
+  public async get(
+    @GetUser() loggedUser: User,
+    @Query() query: PaginationQueryRequestDto,
+  ) {
+    return await this.projectService.getAll(loggedUser, query);
   }
 
   @Get(':id')
@@ -43,6 +49,15 @@ export class ProjectController {
     @GetUser() loggedUser: User,
   ) {
     return await this.projectService.getProjectById(loggedUser, projectId);
+  }
+
+  @Patch(':id')
+  public async update(
+    @IsUuidParam('id') projectId: string,
+    @GetUser() loggedUser: User,
+    @Body() project: UpdateProjectRequest,
+  ) {
+    return await this.projectService.update(loggedUser, projectId, project);
   }
 
   @Delete(':id')
