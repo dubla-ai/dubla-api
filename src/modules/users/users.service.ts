@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities';
@@ -150,7 +151,11 @@ export class UsersService {
     patchIfPresent(user, 'phone', patchUser.phone);
 
     await this.userRepository.update(userId, {
-      ...user,
+      ..._.omit(user, [
+        'planSeconds',
+        'usedDurationInSeconds',
+        'availableDurationInSeconds',
+      ]),
     });
 
     return;
