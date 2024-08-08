@@ -4,12 +4,12 @@ import { Paragraph } from './paragraph.entity';
 import { Audio } from './audio.entity';
 import { User } from './user.entity';
 
-enum GenderEnum {
+export enum GenderEnum {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
 }
 
-enum AgeGroup {
+export enum AgeGroup {
   TEENAGER = 'TEENAGER',
 }
 
@@ -29,6 +29,9 @@ export class Voice extends BaseEntity {
 
   @Column()
   style: string;
+
+  @Column({ nullable: true })
+  preview: string;
 
   @Column({ type: 'boolean', default: false })
   isActive: boolean;

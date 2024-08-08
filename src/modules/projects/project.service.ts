@@ -404,6 +404,9 @@ export class ProjectService {
         paragraph: {
           id: paragraph.id,
         },
+        voice: {
+          id: paragraph.voice.id,
+        },
         durationInSeconds,
         isSelected: true,
       }),
