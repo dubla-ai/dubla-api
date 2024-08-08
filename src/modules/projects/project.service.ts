@@ -215,7 +215,7 @@ export class ProjectService {
     }
 
     const paragraphs = await this.paragraphRepository.find({
-      relations: ['audios'],
+      relations: ['audios', 'voice'],
       where: {
         project: {
           id: projectId,
