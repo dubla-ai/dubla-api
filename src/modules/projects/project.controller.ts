@@ -104,6 +104,19 @@ export class ProjectController {
     );
   }
 
+  @Delete(':id/paragraphs/:paragraphId')
+  public async deleteParagraph(
+    @GetUser() loggedUser: User,
+    @IsUuidParam('id') projectId: string,
+    @IsUuidParam('paragraphId') paragraphId: string,
+  ) {
+    return await this.projectService.deleteParagraph(
+      loggedUser,
+      projectId,
+      paragraphId,
+    );
+  }
+
   @Post(':id/paragraphs/:paragraphId/preview')
   @UseGuards(PermissionsGuard)
   public async generatePreview(

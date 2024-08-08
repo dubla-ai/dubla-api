@@ -295,6 +295,30 @@ export class ProjectService {
     return await this.paragraphRepository.findOneBy({ id: paragraph.id });
   }
 
+  public async deleteParagraph(
+    loggedUser: User,
+    projectId: string,
+    paragraphId: string,
+  ) {
+    const paragraph = await this.paragraphRepository.findOne({
+      where: {
+        project: {
+          id: projectId,
+          user: {
+            id: loggedUser.id,
+          },
+        },
+        id: paragraphId,
+      },
+    });
+
+    if (!paragraph) {
+      throw new NotFoundException('Paragrafo não foi encontrado');
+    }
+
+    await this.paragraphRepository.softDelete(paragraph.id);
+  }
+
   public async createParagraph(
     loggedUser: User,
     projectId: string,
