@@ -148,7 +148,7 @@ export class ProjectService {
   }
 
   public async getProjectById(user: User, projectId: string) {
-    return await this.projectRepository.find({
+    return await this.projectRepository.findOne({
       where: {
         id: projectId,
         user: {
