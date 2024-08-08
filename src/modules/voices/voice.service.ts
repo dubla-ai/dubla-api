@@ -25,10 +25,11 @@ export class VoiceService {
 
     return await Promise.all(
       voices.map(async (voice) => {
-        const audioSrc = await this.storageService.getSignedUrl(voice.preview);
         return {
           ...voice,
-          preview: audioSrc,
+          preview: voice.preview
+            ? await this.storageService.getSignedUrl(voice.preview)
+            : null,
         };
       }),
     );
