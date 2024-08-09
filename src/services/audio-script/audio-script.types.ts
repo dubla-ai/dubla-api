@@ -100,7 +100,7 @@ export type DeleteProjectResponse = {
 
 export type CreateVoiceRequest = {
   name: string;
-  files: string[];
+  file: Blob;
   description?: string;
   labels?: string;
 };

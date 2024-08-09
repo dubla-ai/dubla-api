@@ -78,9 +78,20 @@ export class ElevenLabsProvider extends BaseProvider {
   public async createVoice(
     voice: CreateVoiceRequest,
   ): Promise<CreateVoiceResponse> {
-    return await this.client.post<any, CreateVoiceResponse>(`/v1/voices/add`, {
-      voice,
-    });
+    const formData = new FormData();
+
+    formData.append('name', voice.name);
+    formData.append(`files`, voice.file);
+
+    return await this.client.post<any, CreateVoiceResponse>(
+      `/v1/voices/add`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
   }
 
   public async deleteVoice(voiceId: string) {

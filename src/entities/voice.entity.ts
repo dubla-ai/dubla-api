@@ -21,13 +21,13 @@ export class Voice extends BaseEntity {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   gender: GenderEnum;
 
-  @Column()
+  @Column({ nullable: true })
   ageGroup: AgeGroup;
 
-  @Column()
+  @Column({ nullable: true })
   style: string;
 
   @Column({ nullable: true })

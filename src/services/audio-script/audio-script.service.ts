@@ -4,6 +4,8 @@ import { ElevenLabsProvider } from '../../providers/elevenlabs/elevenlabs.provid
 import {
   CreateProjectRequest,
   CreateProjectResponse,
+  CreateVoiceRequest,
+  CreateVoiceResponse,
   TextToSpeechRequest,
   TextToSpeechResponse,
 } from './audio-script.types';
@@ -27,6 +29,12 @@ export class AudioScriptService implements IAudioScriptService {
     clip: TextToSpeechRequest,
   ): Promise<TextToSpeechResponse> {
     return await this.elevenLabsProvider.textToSpeech(voiceId, clip);
+  }
+
+  public async createVoice(
+    voice: CreateVoiceRequest,
+  ): Promise<CreateVoiceResponse> {
+    return await this.elevenLabsProvider.createVoice(voice);
   }
 
   async downloadFile(
