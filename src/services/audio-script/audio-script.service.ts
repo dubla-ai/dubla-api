@@ -1,41 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { IAudioScriptService } from './audio-script.service.interface';
-import { ResembleProvider } from '../../providers/resemble/resemble.provider';
+import { ElevenLabsProvider } from '../../providers/elevenlabs/elevenlabs.provider';
 import {
-  CreateClipRequest,
-  CreateClipResponse,
   CreateProjectRequest,
   CreateProjectResponse,
-  DeleteProjectResponse,
+  TextToSpeechRequest,
+  TextToSpeechResponse,
 } from './audio-script.types';
 
 @Injectable()
 export class AudioScriptService implements IAudioScriptService {
-  constructor(private readonly resemble: ResembleProvider) {}
+  constructor(private readonly elevenLabsProvider: ElevenLabsProvider) {}
 
   public async createProject(
     project: CreateProjectRequest,
   ): Promise<CreateProjectResponse> {
-    return await this.resemble.createProject(project);
+    return await this.elevenLabsProvider.createProject(project);
   }
 
-  public async deleteProject(
-    projectId: string,
-  ): Promise<DeleteProjectResponse> {
-    return await this.resemble.deleteProject(projectId);
+  public async deleteProject(projectId: string) {
+    return await this.elevenLabsProvider.deleteProject(projectId);
   }
 
-  public async createClip(
-    projectId: string,
-    clip: CreateClipRequest,
-  ): Promise<CreateClipResponse> {
-    return await this.resemble.createClip(projectId, clip);
+  public async textTooSpeech(
+    voiceId: string,
+    clip: TextToSpeechRequest,
+  ): Promise<TextToSpeechResponse> {
+    return await this.elevenLabsProvider.textToSpeech(voiceId, clip);
   }
 
   async downloadFile(
     url: string,
     retryCount: number = 5,
   ): Promise<Buffer | string> {
-    return await this.resemble.downloadFile(url, retryCount);
+    return await this.elevenLabsProvider.downloadFile(url, retryCount);
   }
 }

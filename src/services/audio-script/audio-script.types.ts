@@ -1,58 +1,110 @@
 export type CreateProjectRequest = {
   name: string;
-  description: string;
-  is_collaborative?: string;
-  is_archived?: string;
+  default_title_voice_id: string;
+  default_paragraph_voice_id: string;
+  default_model_id: string;
+  from_url?: string;
+  from_document?: string;
+  quality_preset?: string;
+  title?: string;
+  author?: string;
+  isbn_number?: string;
+  acx_volume_normalization?: boolean;
+  volume_normalization?: boolean;
+  pronunciation_dictionary_locators?: string[];
+  callback_url?: string;
 };
 
 export type CreateProjectResponse = {
-  success: boolean;
-  item: {
-    uuid: string;
+  project: {
+    project_id: string;
     name: string;
-    description: string;
-    is_collaborative: string;
-    is_archived: boolean;
-    created_at: Date;
-    updated_at: Date;
+    create_date_unix: number;
+    default_title_voice_id: string;
+    default_paragraph_voice_id: string;
+    default_model_id: string;
+    last_conversion_date_unix: number;
+    can_be_downloaded: boolean;
+    title: string;
+    author: string;
+    isbn_number: string;
+    volume_normalization: boolean;
+    state: string;
   };
 };
 
-export type CreateClipRequest = {
-  title?: string;
-  body: string;
-  voice_uuid: string;
-  is_archived?: string;
-  callback_uri?: string;
-  precision?: string;
-  sample_rate?: string;
-  output_format?: string;
-  include_timestamps?: string;
-  raw?: string;
-  suggestions?: string;
+export type GetProjectResponse = {
+  project_id: string;
+  name: string;
+  create_date_unix: number;
+  default_title_voice_id: string;
+  default_paragraph_voice_id: string;
+  default_model_id: string;
+  last_conversion_date_unix: number;
+  can_be_downloaded: boolean;
+  state: string;
+  chapters: {
+    chapter_id: string;
+    name: string;
+    last_conversion_date_unix: number;
+    conversion_progress: number;
+    can_be_downloaded: boolean;
+    state: string;
+    statistics: {
+      characters_unconverted: number;
+      characters_converted: number;
+      paragraphs_converted: number;
+      paragraphs_unconverted: number;
+    };
+  }[];
 };
 
-export type CreateClipResponse = {
-  success: boolean;
-  item: {
-    uuid: string;
-    title: string;
-    body: string;
-    voice_uuid: string;
-    is_archived: boolean;
-    timestamps: {
-      graph_chars: string[];
-      graph_times: number[];
-      phon_chars: string[];
-      phon_times: number[];
-    };
-    audio_src: string;
-    raw_audio: any;
-    created_at: Date;
-    updated_at: Date;
+export type TextToSpeechRequest = {
+  text: string;
+  model_id?: string;
+  language_code?: string;
+  voice_settings?: {
+    stability: number;
+    similarity_boost: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+  pronunciation_dictionary_locators?: {
+    pronunciation_dictionary_id: string;
+    version_id: string;
+  }[];
+  seed?: number;
+  previous_text?: string;
+  next_text?: string;
+  previous_request_ids?: string[];
+  next_request_ids?: string[];
+};
+
+export type TextToSpeechResponse = {
+  audio_base64: string;
+  alignment: {
+    characters: string[];
+    character_start_times_seconds: number[];
+    character_end_times_seconds: number[];
+  };
+  normalized_alignment: {
+    characters: string[];
+    character_start_times_seconds: number[];
+    character_end_times_seconds: number[];
   };
 };
 
 export type DeleteProjectResponse = {
   success: boolean;
+};
+
+export type CreateVoiceRequest = {
+  name: string;
+  files: string[];
+  description?: string;
+  labels?: string;
+};
+
+export type CreateVoiceResponse = {
+  voice_id: string;
 };

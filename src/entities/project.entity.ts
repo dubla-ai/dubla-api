@@ -6,9 +6,6 @@ import { Paragraph } from './paragraph.entity';
 @Entity({ name: 'projects' })
 export class Project extends BaseEntity {
   @Column()
-  providerId: string;
-
-  @Column()
   name: string;
 
   @Column({ nullable: true })

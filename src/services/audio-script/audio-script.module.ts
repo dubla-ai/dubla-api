@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { AUDIO_SCRIPT_SERVICE } from '../services';
 import { AudioScriptService } from './audio-script.service';
-import { ResembleProvider } from '../../providers/resemble/resemble.provider';
+import { ElevenLabsProvider } from '../../providers/elevenlabs/elevenlabs.provider';
 
 @Global()
 @Module({
@@ -11,7 +11,7 @@ import { ResembleProvider } from '../../providers/resemble/resemble.provider';
       provide: AUDIO_SCRIPT_SERVICE,
       useClass: AudioScriptService,
     },
-    ResembleProvider,
+    ElevenLabsProvider,
   ],
   exports: [AUDIO_SCRIPT_SERVICE],
 })

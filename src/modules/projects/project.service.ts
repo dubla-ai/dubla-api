@@ -54,17 +54,8 @@ export class ProjectService {
       throw new ForbiddenException('Projeto com esse nome já existe');
     }
 
-    const audioScriptProject =
-      await this.audioScriptService.createProject(project);
-
-    if (!audioScriptProject.success) {
-      throw new Error('Could not create project');
-    }
-
     const projectCreated = await this.projectRepository.save(
       this.projectRepository.create({
-        ...project,
-        providerId: audioScriptProject.item.uuid,
         user: {
           id: user.id,
         },
@@ -186,7 +177,7 @@ export class ProjectService {
 
   public async delete(user: User, projectId: string) {
     const project = await this.projectRepository.findOne({
-      select: ['id', 'providerId'],
+      select: ['id'],
       where: {
         user: {
           id: user.id,
@@ -325,7 +316,7 @@ export class ProjectService {
     createParagraph: CreateParagraphRequest,
   ) {
     const project = await this.projectRepository.findOne({
-      select: ['id', 'providerId'],
+      select: ['id'],
       where: {
         user: {
           id: loggedUser.id,
@@ -385,30 +376,22 @@ export class ProjectService {
       throw new NotFoundException('Paragrafo não foi encontrado');
     }
 
-    const clip = await this.audioScriptService.createClip(
-      paragraph.project.providerId,
+    const speech = await this.audioScriptService.textTooSpeech(
+      paragraph.voice.providerId,
       {
-        body: paragraph.body,
-        voice_uuid: paragraph.voice.providerId,
-        output_format: 'mp3',
+        text: paragraph.body,
+        model_id: 'eleven_turbo_v2_5',
       },
     );
 
-    const { timestamps } = clip.item;
+    const { normalized_alignment } = speech;
+    const characterEndTimes = normalized_alignment.character_end_times_seconds;
 
-    const startTimes = timestamps.phon_times.map((times) => times[0]);
-    const endTimes = timestamps.phon_times.map((times) => times[1]);
-
-    const minStartTime = Math.min(...startTimes);
-    const maxEndTime = Math.max(...endTimes);
-
-    const durationInSeconds = maxEndTime - minStartTime;
+    const durationInSeconds = characterEndTimes[characterEndTimes.length - 1];
 
     const fullPath = `paragraphs/${paragraph.project.id}/${uuidv4()}.mp3`;
 
-    const audioDownloaded = await this.audioScriptService.downloadFile(
-      clip.item.audio_src,
-    );
+    const audioDownloaded = Buffer.from(speech.audio_base64, 'base64');
     const storageFileUrl = await this.storageService.upload(
       Buffer.from(audioDownloaded),
       fullPath,
