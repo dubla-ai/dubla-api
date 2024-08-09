@@ -1,11 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ForbiddenException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { User, Voice } from '../../entities';
 import { AUDIO_SCRIPT_SERVICE, STORAGE_SERVICE } from '../../services/services';
 import { IStorageService } from '../../services/storage/storage.service.interface';
-import { CloneVoiceRequest } from './dto';
+import { CloneVoiceRequest, GetVoicesRequest } from './dto';
 import { IAudioScriptService } from '../../services/audio-script/audio-script.service.interface';
 
 @Injectable()
@@ -21,20 +27,27 @@ export class VoiceService {
     private readonly audioScriptService: IAudioScriptService,
   ) {}
 
-  public async getAll(user: User) {
+  public async getAll(user: User, query: GetVoicesRequest) {
+    const wheres = [
+      {
+        isActive: true,
+        user: {
+          id: user.id,
+        },
+        ...(query.search ? { name: Like(`%${query.search}%`) } : {}),
+      },
+    ];
+
+    if (query.allVoices) {
+      wheres.push({
+        isActive: true,
+        user: null,
+        ...(query.search ? { name: Like(`%${query.search}%`) } : {}),
+      });
+    }
+
     const voices = await this.voiceRepository.find({
-      where: [
-        {
-          isActive: true,
-          user: {
-            id: user.id,
-          },
-        },
-        {
-          isActive: true,
-          user: null,
-        },
-      ],
+      where: wheres,
     });
 
     return await Promise.all(
@@ -50,6 +63,20 @@ export class VoiceService {
   }
 
   public async delete(user: User, voiceId: string) {
+    const voice = await this.voiceRepository.findOne({
+      where: {
+        isActive: true,
+        id: voiceId,
+        user: {
+          id: user.id,
+        },
+      },
+    });
+
+    if (!voice) {
+      throw new NotFoundException();
+    }
+
     await this.voiceRepository.update(
       {
         isActive: true,
@@ -60,6 +87,38 @@ export class VoiceService {
       },
       {
         isActive: false,
+      },
+    );
+  }
+
+  public async edit(
+    user: User,
+    voiceRequest: CloneVoiceRequest,
+    voiceId: string,
+  ) {
+    const voice = await this.voiceRepository.findOne({
+      where: {
+        isActive: true,
+        id: voiceId,
+        user: {
+          id: user.id,
+        },
+      },
+    });
+
+    if (!voice) {
+      throw new NotFoundException();
+    }
+
+    await this.voiceRepository.update(
+      {
+        id: voiceId,
+        user: {
+          id: user.id,
+        },
+      },
+      {
+        name: voiceRequest.name,
       },
     );
   }
