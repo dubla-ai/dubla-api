@@ -59,6 +59,8 @@ export class ProjectService {
         user: {
           id: user.id,
         },
+        name: project.name,
+        description: project.description,
       }),
     );
 
