@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateParagraphRequest {
   @IsUUID()
@@ -6,5 +6,7 @@ export class CreateParagraphRequest {
   voiceId: string;
 
   @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(2000)
   body: string;
 }
