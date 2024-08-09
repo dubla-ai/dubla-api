@@ -375,7 +375,17 @@ export class ProjectService {
     });
 
     if (!paragraph) {
-      throw new NotFoundException('Paragrafo não foi encontrado');
+      throw new NotFoundException('Parágrafo não foi encontrado');
+    }
+
+    const textToSeconds = (chars: string) => {
+      return (chars.length * 30) / 500;
+    };
+
+    if (
+      textToSeconds(paragraph.body) >= loggedUser.availableDurationInSeconds
+    ) {
+      throw new ForbiddenException('Créditos insuficientes');
     }
 
     const speech = await this.audioScriptService.textTooSpeech(
