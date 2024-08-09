@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { FindOptionsWhere, IsNull, Like, Repository } from 'typeorm';
 import { User, Voice } from '../../entities';
 import { AUDIO_SCRIPT_SERVICE, STORAGE_SERVICE } from '../../services/services';
 import { IStorageService } from '../../services/storage/storage.service.interface';
@@ -36,12 +36,12 @@ export class VoiceService {
         },
         ...(query.search ? { name: Like(`%${query.search}%`) } : {}),
       },
-    ];
+    ] as FindOptionsWhere<Voice>[];
 
     if (query.allVoices) {
       wheres.push({
         isActive: true,
-        user: null,
+        user: IsNull(),
         ...(query.search ? { name: Like(`%${query.search}%`) } : {}),
       });
     }
