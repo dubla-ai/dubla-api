@@ -104,6 +104,7 @@ export class VoiceService {
         name: cloneVoice.name,
         providerId: voice.voice_id,
         preview: fullPath,
+        isActive: true,
       }),
     );
   }
