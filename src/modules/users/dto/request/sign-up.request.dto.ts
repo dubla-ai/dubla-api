@@ -12,6 +12,9 @@ export class SignUpRequestDto {
   password: string;
 
   @IsNotEmpty()
+  confirmPassword: string;
+
+  @IsNotEmpty()
   cpf: string;
 
   @IsOptional()

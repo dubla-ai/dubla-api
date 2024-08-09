@@ -58,6 +58,14 @@ export class AuthService {
   }
 
   async signUp(signUp: SignUpRequestDto): Promise<SignUpResponseDto> {
+    if (signUp.password !== signUp.confirmPassword) {
+      throw new ForbiddenException('As senhas nao conferem');
+    }
+
+    if (signUp.email.includes('+')) {
+      throw new ForbiddenException('E-mail não permitido');
+    }
+
     const user = await this.usersService.findByEmail(signUp.email);
 
     if (user) {
