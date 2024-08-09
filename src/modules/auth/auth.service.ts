@@ -68,7 +68,10 @@ export class AuthService {
   }
 
   async getDashboard(user: User, filters: GetDashboardRequest): Promise<any> {
-    const { startDate, endDate } = filters;
+    let { startDate, endDate } = filters;
+
+    startDate = startDate + ' 00:00:00';
+    endDate = endDate + ' 23:59:59';
 
     const totalProjects = await this.projectRepository
       .createQueryBuilder('project')

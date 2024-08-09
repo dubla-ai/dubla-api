@@ -80,7 +80,9 @@ export class ProjectService {
     const query = this.projectRepository
       .createQueryBuilder('project')
       .leftJoin('project.paragraphs', 'paragraph')
-      .leftJoin('paragraph.audios', 'audio')
+      .leftJoin('paragraph.audios', 'audio', 'audio.isSelected = :isSelected', {
+        isSelected: true,
+      })
       .leftJoin('paragraph.voice', 'voice')
       .select('project')
       .addSelect('COUNT(paragraph.id)', 'paragraphsCount')
