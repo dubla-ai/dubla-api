@@ -30,7 +30,6 @@ export class VoiceService {
   public async getAll(user: User, query: GetVoicesRequest) {
     const wheres = [
       {
-        isActive: true,
         user: {
           id: user.id,
         },
@@ -40,7 +39,6 @@ export class VoiceService {
 
     if (query.allVoices) {
       wheres.push({
-        isActive: true,
         user: IsNull(),
         ...(query.search ? { name: Like(`%${query.search}%`) } : {}),
       });
@@ -65,7 +63,6 @@ export class VoiceService {
   public async delete(user: User, voiceId: string) {
     const voice = await this.voiceRepository.findOne({
       where: {
-        isActive: true,
         id: voiceId,
         user: {
           id: user.id,
@@ -77,18 +74,12 @@ export class VoiceService {
       throw new NotFoundException();
     }
 
-    await this.voiceRepository.update(
-      {
-        isActive: true,
-        id: voiceId,
-        user: {
-          id: user.id,
-        },
+    await this.voiceRepository.softDelete({
+      id: voiceId,
+      user: {
+        id: user.id,
       },
-      {
-        isActive: false,
-      },
-    );
+    });
   }
 
   public async edit(
@@ -98,7 +89,6 @@ export class VoiceService {
   ) {
     const voice = await this.voiceRepository.findOne({
       where: {
-        isActive: true,
         id: voiceId,
         user: {
           id: user.id,
@@ -167,7 +157,6 @@ export class VoiceService {
         name: cloneVoice.name,
         providerId: voice.voice_id,
         preview: fullPath,
-        isActive: true,
       }),
     );
   }

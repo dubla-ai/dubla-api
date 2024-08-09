@@ -271,7 +271,6 @@ export class ProjectService {
         select: ['id', 'providerId'],
         where: {
           id: updateParagraph.voiceId,
-          isActive: true,
         },
       });
 
@@ -337,7 +336,6 @@ export class ProjectService {
       select: ['id', 'providerId'],
       where: {
         id: createParagraph.voiceId,
-        isActive: true,
       },
     });
 

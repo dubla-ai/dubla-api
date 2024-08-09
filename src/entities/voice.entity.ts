@@ -33,9 +33,6 @@ export class Voice extends BaseEntity {
   @Column({ nullable: true })
   preview: string;
 
-  @Column({ type: 'boolean', default: false })
-  isActive: boolean;
-
   @OneToMany(() => Paragraph, (paragraph) => paragraph.voice)
   paragraphs: Paragraph[];
 

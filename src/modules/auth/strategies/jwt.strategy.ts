@@ -83,7 +83,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       .createQueryBuilder('voice')
       .select('COUNT(voice.id)', 'total')
       .where('voice.userId = :userId', { userId: user.id })
-      .andWhere('voice.isActive = :isActive', { isActive: true })
       .getRawOne();
 
     const usedDurationInSeconds = totalDurationInSeconds.total || 0;
