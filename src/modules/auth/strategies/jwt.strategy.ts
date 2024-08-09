@@ -2,7 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Audio, Plan, User, UserPlan } from '../../../entities';
+import { Audio, Plan, User, UserPlan, Voice } from '../../../entities';
 import { Repository } from 'typeorm';
 import { endOfMonth, startOfMonth } from 'date-fns';
 
@@ -13,6 +13,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private userRepository: Repository<User>,
     @InjectRepository(Audio)
     private audioRepository: Repository<Audio>,
+    @InjectRepository(Voice)
+    private voiceRepository: Repository<Voice>,
     @InjectRepository(UserPlan)
     private userPlanRepository: Repository<UserPlan>,
     @InjectRepository(Plan)
@@ -63,6 +65,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const planSeconds = user.userPlan?.plan.monthlyCredits || 3600;
+    const planVoices = user.userPlan?.plan.monthlyVoiceCredits;
 
     const totalDurationInSeconds = await this.audioRepository
       .createQueryBuilder('audio')
@@ -76,12 +79,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       })
       .getRawOne();
 
+    const totalVoicesCreated = await this.voiceRepository
+      .createQueryBuilder('voice')
+      .select('COUNT(voice.id)', 'total')
+      .where('voice.userId = :userId', { userId: user.id })
+      .andWhere('voice.isActive = :isActive', { isActive: true })
+      .getRawOne();
+
     const usedDurationInSeconds = totalDurationInSeconds.total || 0;
     const creditDifferenceInHours = planSeconds - usedDurationInSeconds;
+    const availableVoicesToCreate =
+      planVoices - (totalVoicesCreated.total || 0);
 
+    user.planVoices = planVoices;
     user.planSeconds = planSeconds;
     user.usedDurationInSeconds = totalDurationInSeconds.total || 0;
     user.availableDurationInSeconds = creditDifferenceInHours;
+    user.availableVoicesToCreate = availableVoicesToCreate;
 
     if (!user) throw new UnauthorizedException();
 

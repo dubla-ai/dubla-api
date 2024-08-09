@@ -13,6 +13,9 @@ export class Plan extends BaseEntity {
   @Column()
   monthlyCredits: number;
 
+  @Column({ default: 1 })
+  monthlyVoiceCredits: number;
+
   @OneToMany(() => UserPlan, (userPlan) => userPlan.plan)
   userPlans: UserPlan[];
 }

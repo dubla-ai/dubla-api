@@ -140,6 +140,8 @@ export class AuthService {
       secondsAvailable: user.availableDurationInSeconds,
       secondsInPlan: user.planSeconds,
       secondsUsed: user.usedDurationInSeconds,
+      planVoices: user.planVoices,
+      availableVoicesToCreate: user.availableVoicesToCreate,
       totalProjects,
       totalVoices,
       usage: formattedDailyUsage,

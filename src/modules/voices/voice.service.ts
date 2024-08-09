@@ -128,6 +128,10 @@ export class VoiceService {
     file: Express.Multer.File,
     cloneVoice: CloneVoiceRequest,
   ) {
+    if (!user.availableVoicesToCreate) {
+      throw new ForbiddenException('Créditos insuficientes');
+    }
+
     if (!file?.originalname) {
       throw new ForbiddenException('Arquivo inválido');
     }
@@ -148,7 +152,7 @@ export class VoiceService {
     });
 
     const speech = await this.audioScriptService.textTooSpeech(voice.voice_id, {
-      text: 'Ao recriar minha voz com a avançada tecnologia da Dubla Ai, estou iniciando uma jornada repleta de inovação e possibilidades',
+      text: 'Ao recriar minha voz com a avançada tecnologia da Dubla aí, estou iniciando uma jornada repleta de inovação e possibilidades',
       model_id: 'eleven_turbo_v2_5',
     });
 

@@ -8,8 +8,10 @@ export class User extends BaseEntity {
   constructor() {
     super();
     this.planSeconds = 0;
+    this.planVoices = 0;
     this.usedDurationInSeconds = 0;
     this.availableDurationInSeconds = 0;
+    this.availableVoicesToCreate = 0;
   }
 
   @Column()
@@ -34,10 +36,16 @@ export class User extends BaseEntity {
   planSeconds: number;
 
   @Expose()
+  planVoices: number;
+
+  @Expose()
   usedDurationInSeconds: number;
 
   @Expose()
   availableDurationInSeconds: number;
+
+  @Expose()
+  availableVoicesToCreate: number;
 
   @OneToMany(() => Project, (project) => project.user)
   projects: Project[];

@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateParagraphRequest {
   @IsUUID()
@@ -6,5 +6,7 @@ export class UpdateParagraphRequest {
   voiceId: string;
 
   @IsOptional()
+  @MinLength(1)
+  @MaxLength(2000)
   body: string;
 }

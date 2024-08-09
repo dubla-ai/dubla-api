@@ -153,8 +153,10 @@ export class UsersService {
     await this.userRepository.update(userId, {
       ..._.omit(user, [
         'planSeconds',
+        'planVoices',
         'usedDurationInSeconds',
         'availableDurationInSeconds',
+        'availableVoicesToCreate',
       ]),
     });
 
