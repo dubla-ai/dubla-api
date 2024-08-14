@@ -20,6 +20,7 @@ import { IAudioScriptService } from '../../services/audio-script/audio-script.se
 import { IStorageService } from '../../services/storage/storage.service.interface';
 import { patchIfPresent } from '../../utils';
 import { PaginationQueryRequestDto } from '../../shared/dtos';
+import { AudioManagerProvider } from '../../providers/audio-manager/audio-manager.provider';
 
 @Injectable()
 export class ProjectService {
@@ -38,6 +39,7 @@ export class ProjectService {
     private paragraphRepository: Repository<Paragraph>,
     @Inject(STORAGE_SERVICE)
     private readonly storageService: IStorageService,
+    private audioManagerProvider: AudioManagerProvider,
   ) {}
 
   public async create(user: User, project: CreateProjectRequest) {
@@ -354,6 +356,58 @@ export class ProjectService {
         body: createParagraph.body,
       }),
     );
+  }
+
+  public async exportProject(
+    loggedUser: User,
+    projectId: string,
+    type: string,
+  ) {
+    if (!['zip', 'unified'].includes(type)) {
+      throw new ForbiddenException();
+    }
+
+    const project = await this.projectRepository.findOne({
+      select: ['id'],
+      where: {
+        user: {
+          id: loggedUser.id,
+        },
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Projeto não foi encontrado');
+    }
+
+    const activeAudios = await this.audioRepository
+      .createQueryBuilder('audio')
+      .innerJoinAndSelect('audio.paragraph', 'paragraph')
+      .innerJoinAndSelect('paragraph.project', 'project')
+      .where('audio.isSelected = :isSelected', { isSelected: true })
+      .andWhere('project.id = :projectId', { projectId })
+      .orderBy('paragraph.createdAt', 'ASC')
+      .getMany();
+
+    const keys = activeAudios.map((a) => a.storageProviderKey);
+
+    const fileExtension = type === 'zip' ? 'zip' : 'mp3';
+    const outputKey = `exported_audios/${loggedUser.id}/${uuidv4()}.${fileExtension}`;
+
+    const mergedAudio = await this.audioManagerProvider.mergeAudios({
+      keys,
+      output_key: outputKey,
+      type,
+    });
+
+    const audioUrl = await this.storageService.getSignedUrl(
+      mergedAudio.output_key,
+    );
+
+    return {
+      audioUrl,
+    };
   }
 
   public async generatePreview(

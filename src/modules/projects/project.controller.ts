@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Patch,
   Post,
   Query,
@@ -87,6 +88,15 @@ export class ProjectController {
       projectId,
       paragraph,
     );
+  }
+
+  @Post(':id/export/:type')
+  public async exportProject(
+    @GetUser() loggedUser: User,
+    @IsUuidParam('id') projectId: string,
+    @Param('type') type: string,
+  ) {
+    return await this.projectService.exportProject(loggedUser, projectId, type);
   }
 
   @Patch(':id/paragraphs/:paragraphId')

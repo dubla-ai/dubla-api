@@ -5,6 +5,7 @@ import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
 import { AudioScriptModule } from '../../services/audio-script/audio-script.module';
 import { StorageModule } from '../../services/storage/storage.module';
+import { AudioManagerProvider } from '../../providers/audio-manager/audio-manager.provider';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { StorageModule } from '../../services/storage/storage.module';
     StorageModule,
   ],
   controllers: [ProjectController],
-  providers: [ProjectService],
+  providers: [ProjectService, AudioManagerProvider],
 })
 export class ProjectModule {}
